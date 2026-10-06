@@ -2,8 +2,7 @@
 ### Bản Thiết Kế Chiến Lược Sản Phẩm, Hệ Thống Chỉ Số (Metric System) & Kế Hoạch Đo Lường
 
 **Mã học viên:** 2A202602899  
-**Họ và tên:** Đỗ Trương Thành An  
-**Khóa học:** Track 1 — Day 20  
+**Họ và tên:** Đỗ Trương Thành An   
 
 ---
 
