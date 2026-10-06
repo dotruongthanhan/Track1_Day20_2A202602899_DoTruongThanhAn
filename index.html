@@ -1,0 +1,2335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SteelLearn — AI SOP Tutor Agent | Bản Thiết Kế Chiến Lược & Hệ Thống Chỉ Số</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS & COLOR PALETTE
+       Colors requested:
+       - #c15f3c (Primary Terracotta / Industrial Rust Steel)
+       - #ffffff (White background)
+       - #f4f3ee (Secondary light warm neutral)
+       - #b1ada1 (Muted warm slate / border / divider)
+       - #000000 (Black typography)
+       ========================================================================== */
+    :root {
+      --color-primary: #c15f3c;
+      --color-primary-dark: #9e482b;
+      --color-primary-light: #df8769;
+      --color-primary-subtle: rgba(193, 95, 60, 0.08);
+      --color-primary-border: rgba(193, 95, 60, 0.25);
+
+      --color-bg: #ffffff;
+      --color-surface: #f4f3ee;
+      --color-surface-hover: #eceae3;
+      --color-border: #b1ada1;
+      --color-border-subtle: rgba(177, 173, 161, 0.35);
+
+      --color-text: #000000;
+      --color-text-muted: rgba(0, 0, 0, 0.72);
+      --color-text-subtle: rgba(0, 0, 0, 0.52);
+
+      --color-success-bg: #eaf5ea;
+      --color-success-text: #1b5e20;
+      --color-success-border: #81c784;
+
+      --color-warn-bg: #fff8e1;
+      --color-warn-text: #b78103;
+
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+      --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.08), 0 3px 6px rgba(0, 0, 0, 0.04);
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', SFMono-Regular, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--color-surface);
+      color: var(--color-text);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--color-surface);
+      color: var(--color-text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ==========================================================================
+       HEADER & NAVIGATION BAR
+       ========================================================================== */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background-color: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--color-border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .top-bar-inner {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--color-text);
+    }
+
+    .brand-logo-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--color-primary);
+      color: #ffffff;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.25rem;
+      box-shadow: 0 2px 6px rgba(193, 95, 60, 0.4);
+    }
+
+    .brand-text h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      color: var(--color-text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-text span {
+      color: var(--color-primary);
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: var(--color-text-subtle);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      list-style: none;
+    }
+
+    .nav-link {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-text);
+      text-decoration: none;
+      border-radius: var(--radius-sm);
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .nav-link:hover {
+      background-color: var(--color-surface);
+      color: var(--color-primary);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background-color: var(--color-primary);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(193, 95, 60, 0.3);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--color-primary-dark);
+      box-shadow: 0 4px 10px rgba(193, 95, 60, 0.4);
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      border-color: var(--color-border);
+      color: var(--color-text);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--color-surface);
+      border-color: var(--color-text);
+    }
+
+    /* ==========================================================================
+       MAIN LAYOUT CONTAINER
+       ========================================================================== */
+    .container {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 24px;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* ==========================================================================
+       HERO BANNER
+       ========================================================================== */
+    .hero-section {
+      background: #ffffff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hero-section::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--color-primary) 0%, #df8769 50%, var(--color-border) 100%);
+    }
+
+    .hero-badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-primary {
+      background-color: var(--color-primary-subtle);
+      color: var(--color-primary);
+      border: 1px solid var(--color-primary-border);
+    }
+
+    .badge-neutral {
+      background-color: var(--color-surface);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+    }
+
+    .badge-success {
+      background-color: var(--color-success-bg);
+      color: var(--color-success-text);
+      border: 1px solid var(--color-success-border);
+    }
+
+    .hero-title {
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 12px;
+      letter-spacing: -0.025em;
+      color: var(--color-text);
+    }
+
+    .hero-title span {
+      color: var(--color-primary);
+      position: relative;
+    }
+
+    .hero-lead {
+      font-size: 1.15rem;
+      color: var(--color-text-muted);
+      max-width: 960px;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .hero-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      padding-top: 24px;
+      border-top: 1px solid var(--color-border-subtle);
+    }
+
+    .hero-kpi-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .hero-kpi-card.highlight {
+      border-color: var(--color-primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 1px var(--color-primary), var(--shadow-sm);
+    }
+
+    .kpi-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--color-text-subtle);
+      letter-spacing: 0.04em;
+    }
+
+    .kpi-value {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--color-text);
+      line-height: 1.2;
+    }
+
+    .kpi-value.accent {
+      color: var(--color-primary);
+    }
+
+    .kpi-desc {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+    }
+
+    /* ==========================================================================
+       SECTION CONTAINER & CARD ARCHITECTURE
+       ========================================================================== */
+    .section-block {
+      background: #ffffff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 36px;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow-sm);
+      scroll-margin-top: 80px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--color-surface);
+      gap: 16px;
+    }
+
+    .section-title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .section-phase-tag {
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-title {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--color-text);
+      letter-spacing: -0.015em;
+    }
+
+    .section-desc {
+      font-size: 0.95rem;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    /* Grid helpers */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 1024px) {
+      .grid-3, .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: 1fr;
+      }
+      .section-block {
+        padding: 24px 18px;
+      }
+      .hero-section {
+        padding: 24px 18px;
+      }
+    }
+
+    /* Card styling */
+    .content-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      position: relative;
+    }
+
+    .content-card.white {
+      background: #ffffff;
+    }
+
+    .content-card.primary-accent {
+      border-left: 4px solid var(--color-primary);
+      background: #ffffff;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ==========================================================================
+       PHASE 0: SCOPE DEFINITION
+       ========================================================================== */
+    .persona-card {
+      background: linear-gradient(180deg, #ffffff 0%, var(--color-surface) 100%);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .persona-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: var(--radius-md);
+      background: var(--color-primary);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      box-shadow: 0 4px 10px rgba(193, 95, 60, 0.3);
+    }
+
+    .persona-details h4 {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--color-text);
+      margin-bottom: 4px;
+    }
+
+    .persona-role {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-primary);
+      margin-bottom: 10px;
+    }
+
+    .core-job-callout {
+      background: #ffffff;
+      border: 2px dashed var(--color-primary);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin-top: 20px;
+      position: relative;
+    }
+
+    .core-job-badge {
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      background: var(--color-primary);
+      color: #ffffff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 2px 10px;
+      border-radius: var(--radius-full);
+      letter-spacing: 0.05em;
+    }
+
+    .core-job-quote {
+      font-size: 1.25rem;
+      font-weight: 700;
+      font-style: italic;
+      color: var(--color-text);
+      line-height: 1.5;
+    }
+
+    /* ==========================================================================
+       TABLES STYLING
+       ========================================================================== */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      margin: 16px 0;
+      background: #ffffff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    thead th {
+      background-color: var(--color-surface);
+      color: var(--color-text);
+      font-weight: 700;
+      padding: 14px 18px;
+      border-bottom: 2px solid var(--color-border);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tbody td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--color-border-subtle);
+      vertical-align: top;
+      color: var(--color-text);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background-color: rgba(244, 243, 238, 0.45);
+    }
+
+    .td-highlight {
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    code, .code-inline {
+      font-family: var(--font-mono);
+      font-size: 0.82em;
+      background-color: var(--color-surface);
+      border: 1px solid var(--color-border-subtle);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      color: #000000;
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       CHECKLIST / AUDIT CARDS
+       ========================================================================== */
+    .audit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .audit-card {
+      background: #ffffff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .audit-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--color-primary);
+    }
+
+    .audit-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .audit-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+
+    .audit-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      background-color: var(--color-success-bg);
+      color: var(--color-success-text);
+      border: 1px solid var(--color-success-border);
+    }
+
+    .audit-desc {
+      font-size: 0.82rem;
+      color: var(--color-text-muted);
+      line-height: 1.5;
+    }
+
+    .conclusion-box {
+      margin-top: 20px;
+      background: var(--color-primary-subtle);
+      border: 1px solid var(--color-primary-border);
+      border-left: 5px solid var(--color-primary);
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--color-text);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* ==========================================================================
+       METRICS & MATHEMATICAL FORMULAS
+       ========================================================================== */
+    .metric-card {
+      background: #ffffff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+
+    .metric-card.nsm {
+      border: 2px solid var(--color-primary);
+      background: linear-gradient(180deg, #ffffff 0%, rgba(193, 95, 60, 0.03) 100%);
+      box-shadow: 0 4px 16px rgba(193, 95, 60, 0.12);
+    }
+
+    .formula-box {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      color: var(--color-text);
+      margin: 8px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow-x: auto;
+    }
+
+    .formula-fraction {
+      display: inline-flex;
+      flex-direction: column;
+      vertical-align: middle;
+      text-align: center;
+      padding: 0 4px;
+    }
+
+    .fraction-top {
+      border-bottom: 2px solid var(--color-text);
+      padding-bottom: 3px;
+      font-weight: 700;
+    }
+
+    .fraction-bottom {
+      padding-top: 3px;
+      font-weight: 700;
+    }
+
+    .fraction-eq {
+      margin: 0 8px;
+      font-size: 1.1em;
+      font-weight: 700;
+    }
+
+    /* ==========================================================================
+       PRODUCT LOOP DIAGRAM (FLOWCHART)
+       ========================================================================== */
+    .loop-flow-container {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin: 20px 0;
+    }
+
+    .loop-cycles-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      position: relative;
+    }
+
+    @media (max-width: 900px) {
+      .loop-cycles-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .cycle-column {
+      background: #ffffff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .cycle-column.cycle-2 {
+      border-color: var(--color-primary);
+    }
+
+    .cycle-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--color-surface);
+    }
+
+    .cycle-header h4 {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--color-text);
+      letter-spacing: 0.02em;
+    }
+
+    .loop-step-node {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .loop-step-node:hover {
+      border-color: var(--color-primary);
+      background: #ffffff;
+    }
+
+    .loop-step-label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-primary);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .loop-step-content {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-text);
+      line-height: 1.4;
+    }
+
+    .loop-arrow-down {
+      display: flex;
+      justify-content: center;
+      color: var(--color-primary);
+      margin: -6px 0;
+      font-weight: 900;
+      font-size: 1rem;
+    }
+
+    .loop-connector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      background: var(--color-primary-subtle);
+      border: 1px dashed var(--color-primary);
+      border-radius: var(--radius-sm);
+      text-align: center;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    /* ==========================================================================
+       INTERACTIVE LIVE DEMO PREVIEW (SOP SIMULATOR)
+       ========================================================================== */
+    .demo-simulator {
+      background: #ffffff;
+      border: 2px solid var(--color-primary);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin: 28px 0;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .simulator-topbar {
+      background: var(--color-primary);
+      color: #ffffff;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .simulator-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .simulator-tag {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .simulator-body {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      min-height: 520px;
+    }
+
+    @media (max-width: 960px) {
+      .simulator-body {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .simulator-left {
+      padding: 24px;
+      background: #ffffff;
+      border-right: 1px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .sop-header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+    }
+
+    .sop-doc-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--color-text);
+      line-height: 1.3;
+    }
+
+    .video-mock-player {
+      width: 100%;
+      height: 160px;
+      background: #1a1a1a;
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+    }
+
+    .video-mock-player::after {
+      content: "VIDEO MÔ PHỎNG THAO TÁC THỰC ĐỊA";
+      position: absolute;
+      bottom: 8px;
+      left: 12px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #ffffff;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .play-btn-circle {
+      width: 48px;
+      height: 48px;
+      background: var(--color-primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(193, 95, 60, 0.5);
+      cursor: pointer;
+    }
+
+    .sop-markdown-steps {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .sop-markdown-steps ol {
+      padding-left: 20px;
+    }
+
+    .sop-markdown-steps li {
+      margin-bottom: 8px;
+    }
+
+    .citation-callout {
+      background: rgba(193, 95, 60, 0.1);
+      border-left: 3px solid var(--color-primary);
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-top: 6px;
+      color: var(--color-text);
+    }
+
+    .simulator-right {
+      background: var(--color-surface);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .quiz-card {
+      background: #ffffff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .quiz-question-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--color-text);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .quiz-option-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 14px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.15s ease;
+      background: #ffffff;
+    }
+
+    .quiz-option-label:hover {
+      border-color: var(--color-primary);
+      background-color: var(--color-primary-subtle);
+    }
+
+    .quiz-option-label.correct {
+      border-color: var(--color-success-border);
+      background-color: var(--color-success-bg);
+      color: var(--color-success-text);
+    }
+
+    .quiz-option-label input {
+      margin-top: 3px;
+    }
+
+    .quiz-result-feedback {
+      background: #ffffff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .quiz-result-feedback.active {
+      display: flex;
+    }
+
+    .result-score-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+
+    .result-score-banner.passed {
+      background: var(--color-success-bg);
+      color: var(--color-success-text);
+      border: 1px solid var(--color-success-border);
+    }
+
+    .event-log-pill {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      background: #000000;
+      color: #00ff66;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ==========================================================================
+       TRACKING TABLE SEARCH & FILTERS
+       ========================================================================== */
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-input {
+      padding: 8px 14px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      flex: 1;
+      min-width: 240px;
+      background: #ffffff;
+      color: var(--color-text);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px var(--color-primary-border);
+    }
+
+    /* ==========================================================================
+       FOOTER
+       ========================================================================== */
+    .footer {
+      background: #ffffff;
+      border-top: 1px solid var(--color-border);
+      padding: 32px 24px;
+      margin-top: 48px;
+    }
+
+    .footer-inner {
+      max-width: 1360px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .footer-brand h4 {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--color-text);
+    }
+
+    .footer-meta {
+      font-size: 0.8rem;
+      color: var(--color-text-subtle);
+    }
+
+    /* ==========================================================================
+       PRINT MEDIA QUERY
+       ========================================================================== */
+    @media print {
+      body {
+        background: #ffffff;
+        color: #000000;
+      }
+      .top-bar, .nav-actions, .filter-bar, .demo-simulator {
+        display: none !important;
+      }
+      .section-block {
+        border: 1px solid #cccccc;
+        box-shadow: none;
+        page-break-inside: avoid;
+        margin-bottom: 20px;
+        padding: 20px;
+      }
+      .hero-section {
+        border: 1px solid #cccccc;
+        box-shadow: none;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       STICKY TOP NAVIGATION BAR
+       ========================================================================== -->
+  <header class="top-bar">
+    <div class="top-bar-inner">
+      <a href="#" class="brand">
+        <div class="brand-logo-icon">SL</div>
+        <div class="brand-text">
+          <h1>Steel<span>Learn</span></h1>
+          <div class="brand-subtitle">AI SOP Tutor Agent &bull; Product Metric Architecture</div>
+        </div>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="#phase0" class="nav-link">P0: Phạm vi</a></li>
+          <li><a href="#phase1" class="nav-link">P1: Core Action</a></li>
+          <li><a href="#phase2" class="nav-link">P2: Cadence</a></li>
+          <li><a href="#phase3" class="nav-link">P3: Metric System</a></li>
+          <li><a href="#phase4" class="nav-link">P4: Product Loop</a></li>
+          <li><a href="#phase5" class="nav-link">P5: Self-Check</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn btn-outline" onclick="window.print()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          In tài liệu / PDF
+        </button>
+        <a href="#simulator" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Mô phỏng Core Action
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       MAIN CONTENT CONTAINER
+       ========================================================================== -->
+  <main class="container">
+
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+      <div class="hero-badge-row">
+        <span class="badge badge-primary">Dự án Đào tạo Hội nhập AI</span>
+        <span class="badge badge-neutral">Sản xuất Thép Công nghiệp</span>
+        <span class="badge badge-success">Sẵn sàng vận hành (Production Architecture)</span>
+      </div>
+
+      <h2 class="hero-title">
+        BẢN THIẾT KẾ CORE ACTION &amp; HỆ THỐNG CHỈ SỐ SẢN PHẨM: <span>STEELLEARN</span>
+      </h2>
+
+      <p class="hero-lead">
+        Chiến lược sản phẩm, định nghĩa hành vi cốt lõi, ma trận giữ chân (Retention Framework), và kế hoạch đo lường sự kiện cho nền tảng <strong>SteelLearn — AI SOP Tutor Agent</strong> giúp công nhân nhà máy thép làm chủ quy trình vận hành và tiêu chuẩn an toàn sống còn.
+      </p>
+
+      <div class="hero-kpi-grid">
+        <div class="hero-kpi-card highlight">
+          <span class="kpi-label">North Star Metric (NSM)</span>
+          <div class="kpi-value accent">Verified SOPs</div>
+          <div class="kpi-desc">Số lượng SOP kiểm tra đạt chuẩn (&ge; 80%) hàng tuần trên mỗi công nhân</div>
+        </div>
+        <div class="hero-kpi-card">
+          <span class="kpi-label">Core Action</span>
+          <div class="kpi-value">Nộp Quiz SOP</div>
+          <div class="kpi-desc">Làm và nộp bài kiểm tra xác nhận hiểu biết quy trình với phản hồi từ AI</div>
+        </div>
+        <div class="hero-kpi-card">
+          <span class="kpi-label">Nhịp hành vi (Cadence)</span>
+          <div class="kpi-value">Weekly (Tuần)</div>
+          <div class="kpi-desc">Tương thích nhịp ca kíp đào tạo hội nhập (3 – 5 SOP/tuần/công nhân)</div>
+        </div>
+        <div class="hero-kpi-card">
+          <span class="kpi-label">Core Value Event</span>
+          <div class="kpi-value">sop_mastery_achieved</div>
+          <div class="kpi-desc">Hoàn thành bài kiểm tra SOP với điểm số đạt chuẩn &ge; 80%</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         PHASE 0: SCOPE DEFINITION
+         ========================================================================== -->
+    <section id="phase0" class="section-block">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <span class="section-phase-tag">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+            Phase 0
+          </span>
+          <h3 class="section-title">Chốt phạm vi (Scope Definition)</h3>
+        </div>
+        <span class="badge badge-neutral">Foundation Scope</span>
+      </div>
+
+      <div class="grid-2">
+        <div class="content-card primary-accent">
+          <h4 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            1. Dự án: SteelLearn — AI SOP Tutor Agent
+          </h4>
+          <p style="font-size: 0.92rem; color: var(--color-text-muted);">
+            Nền tảng trợ lý AI gia sư hướng dẫn quy trình thao tác chuẩn (<strong>SOP — Standard Operating Procedure</strong>) và luyện tập kiểm tra an toàn theo ngữ cảnh dành cho công nhân nhà máy thép. Hệ thống kết hợp video thao tác thực tế, tài liệu kỹ thuật Markdown số hóa và công cụ đối chiếu tức thì của AI.
+          </p>
+        </div>
+
+        <div class="persona-card">
+          <div class="persona-avatar">TB</div>
+          <div class="persona-details">
+            <span class="badge badge-primary" style="margin-bottom: 6px;">2. Target Persona</span>
+            <h4>Trần Văn Bình (23 tuổi)</h4>
+            <div class="persona-role">Công nhân mới tuyển dụng ca 1 &bull; Xưởng Cán / Luyện Thép</div>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+              Đang trong giai đoạn đào tạo hội nhập 4 tuần (Onboarding Worker). Cần nắm vững các quy trình vận hành máy móc nặng và quy chuẩn an toàn trước khi được cấp phép đứng máy độc lập.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="core-job-callout">
+        <span class="core-job-badge">3. Core Job (Nhu cầu cốt lõi của Persona)</span>
+        <blockquote class="core-job-quote">
+          &ldquo;Tôi muốn nắm chắc và làm đúng các bước vận hành máy móc an toàn để tự tin vào ca làm việc độc lập mà không phạm lỗi kỹ thuật nguy hiểm.&rdquo;
+        </blockquote>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         PHASE 1: CORE ACTION
+         ========================================================================== -->
+    <section id="phase1" class="section-block">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <span class="section-phase-tag">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            Phase 1
+          </span>
+          <h3 class="section-title">Core Action (Hành vi cốt lõi)</h3>
+        </div>
+        <span class="badge badge-primary">Trọng tâm thiết kế</span>
+      </div>
+
+      <!-- 1.1 Phân biệt bốn khái niệm cốt lõi -->
+      <h4 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 12px;">1. Phân biệt bốn khái niệm cốt lõi cho SteelLearn</h4>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 18%;">Khái niệm</th>
+              <th style="width: 28%;">Câu hỏi xác định</th>
+              <th style="width: 54%;">Áp dụng cho SteelLearn (AI SOP Tutor Agent)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="td-highlight">Core job</td>
+              <td>User đang cố hoàn thành việc gì?</td>
+              <td>Nắm chắc và làm đúng các bước vận hành máy móc an toàn để tự tin vào ca làm việc độc lập mà không phạm lỗi nguy hiểm.</td>
+            </tr>
+            <tr>
+              <td class="td-highlight">Core action</td>
+              <td>User làm gì trong sản phẩm để tiến tới giá trị?</td>
+              <td><strong>Hoàn thành bài kiểm tra xác nhận hiểu biết một quy trình SOP</strong> (với phản hồi đối chiếu tức thì từ AI Tutor).</td>
+            </tr>
+            <tr>
+              <td class="td-highlight">Core value</td>
+              <td>User nhận được lợi ích gì?</td>
+              <td>Biết chính xác mình đã hiểu đúng từng bước thao tác chuẩn, nhận diện rõ ngưỡng giới hạn an toàn sống còn (áp suất, nhiệt độ, dừng khẩn cấp E-STOP), xóa tan nỗi sợ làm sai khi ra máy thật.</td>
+            </tr>
+            <tr>
+              <td class="td-highlight">Core value event</td>
+              <td>Sự kiện nào chứng minh value đã xảy ra?</td>
+              <td><code>sop_quiz_passed</code> / <code>sop_mastery_achieved</code> (hoàn thành bài kiểm tra SOP với điểm số đạt chuẩn &ge; 80%).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 1.2 Thẻ Core Action Card -->
+      <h4 style="font-size: 1.15rem; font-weight: 800; margin: 28px 0 12px 0;">2. Thẻ Core Action Card</h4>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 22%;">Thành phần</th>
+              <th style="width: 78%;">Chi tiết thiết kế kỹ thuật cho SteelLearn</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight: 700;">Target user</td>
+              <td>Công nhân mới tuyển dụng đang trong giai đoạn đào tạo hội nhập (Onboarding Worker).</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Core job</td>
+              <td>Nắm chắc và làm đúng các bước vận hành máy móc an toàn để tự tin vào ca làm việc độc lập mà không phạm lỗi kỹ thuật nguy hiểm.</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700; color: var(--color-primary);">Core action</td>
+              <td><strong>Làm và nộp bài kiểm tra xác nhận hiểu biết quy trình SOP</strong> (Submit SOP Knowledge &amp; Safety Verification Quiz).</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Object</td>
+              <td>Bài trắc nghiệm tình huống vận hành của một quy trình thao tác chuẩn cụ thể (<code>sop_id</code>, ví dụ: <em>SOP-CAN-03: Khởi động trục cán &amp; nạp phôi thép nóng</em>).</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Preconditions</td>
+              <td>
+                1. Đã đăng nhập vào hệ thống bằng mã nhân viên.<br>
+                2. Đã mở không gian học tập của SOP (<code>GET /workspace/sops/{id}</code>) có video thực tế và bài viết Markdown.<br>
+                3. AI Tutor đã tạo thành công bộ câu hỏi trắc nghiệm tình huống từ ngữ cảnh SOP.
+              </td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Completion rule</td>
+              <td>Công nhân chọn đáp án cho tất cả câu hỏi và bấm nút <em>"Nộp bài"</em> (<code>POST /api/v1/tutor/evaluate</code>), hệ thống chấm điểm và trả về kết quả đạt (&ge; 80%) kèm trích dẫn điều mục từ tài liệu SOP Markdown.</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Core value</td>
+              <td>Nhận diện rõ các bước thao tác chuẩn và các ngưỡng giới hạn an toàn kỹ thuật; biết chính xác mình sai ở đâu dựa trên giải thích trích dẫn điều mục thực tế từ AI Tutor.</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Evidence of value</td>
+              <td>Kết quả đánh giá đạt yêu cầu (<code>is_passed = True</code>, điểm số &ge; 80%), tiến độ SOP được đánh dấu hoàn thành và ghi nhận vào bảng <code>worker_lesson_progress</code>.</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Candidate event</td>
+              <td><code>sop_quiz_evaluated</code> (với thuộc tính <code>is_passed: true</code>, <code>score &gt;= 80</code>).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 1.3 Tự kiểm 5 tiêu chí Core Action -->
+      <h4 style="font-size: 1.15rem; font-weight: 800; margin: 28px 0 12px 0;">3. Tự kiểm 5 tiêu chí Core Action</h4>
+      <div class="audit-grid">
+        <div class="audit-card">
+          <div class="audit-header">
+            <span class="audit-title">1. Gần core value</span>
+            <span class="audit-status">✅ Đạt</span>
+          </div>
+          <p class="audit-desc">
+            Khi nộp bài kiểm tra và nhận đối chiếu từ AI Tutor, công nhân lập tức biết mình nắm vững quy trình hay còn lỗ hổng. Bằng chứng trực tiếp sẵn sàng đứng máy.
+          </p>
+        </div>
+
+        <div class="audit-card">
+          <div class="audit-header">
+            <span class="audit-title">2. Có thể lặp lại</span>
+            <span class="audit-status">✅ Đạt</span>
+          </div>
+          <p class="audit-desc">
+            Trong 2–4 tuần onboarding, công nhân phải trải qua hàng chục SOP bắt buộc (từ PPE, dầu bôi trơn, trục cán đến E-STOP). Lặp lại tự nhiên theo từng SOP.
+          </p>
+        </div>
+
+        <div class="audit-card">
+          <div class="audit-header">
+            <span class="audit-title">3. Có thể quan sát</span>
+            <span class="audit-status">✅ Đạt</span>
+          </div>
+          <p class="audit-desc">
+            Đo lường chính xác tại thời điểm nhấn nộp bài và API <code>/api/v1/tutor/evaluate</code> trả về điểm số và lưu vết kết quả vào CSDL hệ thống.
+          </p>
+        </div>
+
+        <div class="audit-card">
+          <div class="audit-header">
+            <span class="audit-title">4. Có ý nghĩa</span>
+            <span class="audit-status">✅ Đạt</span>
+          </div>
+          <p class="audit-desc">
+            Số lượt SOP đạt chuẩn tăng trực tiếp chứng minh chất lượng đào tạo tăng, tỉ lệ sai hỏng thao tác và nguy cơ sự cố an toàn tại sàn xưởng giảm rõ rệt.
+          </p>
+        </div>
+
+        <div class="audit-card">
+          <div class="audit-header">
+            <span class="audit-title">5. Có thể tác động</span>
+            <span class="audit-status">✅ Đạt</span>
+          </div>
+          <p class="audit-desc">
+            Đội ngũ phát triển có thể cải thiện bằng cách: tối ưu trải nghiệm đọc song song, tinh chỉnh độ chính xác câu hỏi AI, gợi ý kích hoạt làm quiz đúng lúc.
+          </p>
+        </div>
+      </div>
+
+      <div class="conclusion-box">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <div>
+          <strong>Kết luận tự kiểm: ĐẠT 5/5 TIÊU CHÍ.</strong> Thiết kế đã tránh triệt để bẫy chọn thao tác giao diện thụ động hoặc rời rạc (như <em>"mở ứng dụng"</em> hay <em>"chỉ hỏi chatbot vài câu"</em>).
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         PHASE 2: NATURE & CADENCE
+         ========================================================================== -->
+    <section id="phase2" class="section-block">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <span class="section-phase-tag">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            Phase 2
+          </span>
+          <h3 class="section-title">Nature &amp; Cadence (Bản chất &amp; Nhịp hành vi)</h3>
+        </div>
+        <span class="badge badge-neutral">Chu kỳ vận hành</span>
+      </div>
+
+      <!-- 2.1 Thẻ Action Nature Card -->
+      <h4 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 12px;">1. Thẻ Action Nature Card</h4>
+      <div class="grid-4" style="margin-bottom: 24px;">
+        <div class="content-card">
+          <div class="kpi-label">Actor</div>
+          <div style="font-weight: 700; font-size: 1.05rem; margin-top: 4px;">Cá nhân công nhân</div>
+          <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px;">Định danh duy nhất qua <code>user_id</code> trong lộ trình onboarding.</div>
+        </div>
+
+        <div class="content-card">
+          <div class="kpi-label">Intent</div>
+          <div style="font-weight: 700; font-size: 1.05rem; margin-top: 4px;">Vượt qua kiểm tra</div>
+          <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px;">Tích lũy tín chỉ bài học, tự tin bước vào ca vận hành thực tế.</div>
+        </div>
+
+        <div class="content-card">
+          <div class="kpi-label">Trigger</div>
+          <div style="font-weight: 700; font-size: 1.05rem; margin-top: 4px;">Ngoại cảnh + Tò mò</div>
+          <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px;">Lịch ca phân công của Quản đốc kết hợp nhu cầu tự kiểm tra sau khi xem video.</div>
+        </div>
+
+        <div class="content-card">
+          <div class="kpi-label">Effort</div>
+          <div style="font-weight: 700; font-size: 1.05rem; margin-top: 4px;">Trung bình (10-15p)</div>
+          <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px;">3-5p xem video + 3-5p đọc SOP &amp; hỏi AI + 3-5p làm bài quiz 3 câu.</div>
+        </div>
+      </div>
+
+      <div class="grid-4" style="margin-bottom: 24px;">
+        <div class="content-card">
+          <div class="kpi-label">Value Timing</div>
+          <div style="font-weight: 700; font-size: 1rem; margin-top: 4px;">Hai tầng giá trị</div>
+          <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px;">
+            • <em>Tức thì:</em> Biết đáp án kèm trích dẫn.<br>
+            • <em>Tích lũy:</em> Mở khóa chứng chỉ Skill Matrix.
+          </div>
+        </div>
+
+        <div class="content-card">
+          <div class="kpi-label">State</div>
+          <div style="font-weight: 700; font-size: 1rem; margin-top: 4px;">Lưu vết vĩnh viễn</div>
+          <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px;">Ghi nhận điểm thi vào <code>worker_lesson_progress</code> và lịch sử hỏi đáp vào <code>tutor_messages</code>.</div>
+        </div>
+
+        <div class="content-card">
+          <div class="kpi-label">Dependency</div>
+          <div style="font-weight: 700; font-size: 1rem; margin-top: 4px;">Nội dung số hóa</div>
+          <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px;">Phụ thuộc SOP đã có video/Markdown và ca học phân bổ từ Quản đốc.</div>
+        </div>
+
+        <div class="content-card">
+          <div class="kpi-label">Repeat Condition</div>
+          <div style="font-weight: 700; font-size: 1rem; margin-top: 4px;">Chuyển SOP tiếp theo</div>
+          <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px;">Xuất hiện lại khi mở SOP mới trong bài học hoặc ôn tập định kỳ OJT.</div>
+        </div>
+      </div>
+
+      <!-- 2.2 Kết luận Cadence -->
+      <h4 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 12px;">2. Kết luận Cadence (Chu kỳ đo lường)</h4>
+      <div class="content-card primary-accent" style="margin-bottom: 20px;">
+        <div class="kpi-label" style="color: var(--color-primary);">Template chuẩn Cadence</div>
+        <p style="font-size: 1.05rem; font-weight: 700; margin-top: 6px; line-height: 1.6;">
+          &ldquo;Đối với <strong>công nhân mới đang onboarding tại nhà máy thép</strong>, core action <strong>hoàn thành bài kiểm tra xác nhận hiểu biết quy trình SOP</strong> thường xuất hiện <strong>3 đến 5 lần mỗi tuần</strong> vì <strong>họ học và tích lũy từng quy trình theo các ca đào tạo trong tuần để hoàn thành lộ trình hội nhập bắt buộc</strong>. Do đó, nhịp đo phù hợp là <strong>Weekly (Hàng tuần)</strong> ở cấp <strong>User (Cá nhân công nhân)</strong>.&rdquo;
+        </p>
+      </div>
+
+      <div class="grid-2">
+        <div class="content-card">
+          <h5 style="font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+            Tại sao KHÔNG chọn nhịp Daily?
+          </h5>
+          <p style="font-size: 0.88rem; color: var(--color-text-muted);">
+            Công nhân nhà máy làm việc theo ca kíp (ca 1, ca 2, ca đêm, ngày nghỉ luân phiên). Nếu đo daily sẽ tạo ra <strong>tín hiệu giả về rời bỏ sản phẩm (false churn)</strong> vào những ngày công nhân nghỉ ca hoặc đi làm việc thực tế tại sàn xưởng.
+          </p>
+        </div>
+
+        <div class="content-card">
+          <h5 style="font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            Tại sao KHÔNG tối đa hóa số lần chat AI?
+          </h5>
+          <p style="font-size: 0.88rem; color: var(--color-text-muted);">
+            Nếu công nhân phải chat quá nhiều cho một SOP, đó có thể là dấu hiệu tài liệu SOP quá khó hiểu hoặc AI trả lời lan man. Giá trị thực sự nằm ở việc <strong>hoàn thành kiểm tra hiểu biết đúng chuẩn với thời gian ngắn nhất</strong>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         PHASE 3: METRIC SYSTEM + RETENTION
+         ========================================================================== -->
+    <section id="phase3" class="section-block">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <span class="section-phase-tag">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 20V10"></path><path d="M12 20V4"></path><path d="M6 20v-6"></path></svg>
+            Phase 3
+          </span>
+          <h3 class="section-title">Metric System + Retention (Hệ thống Chỉ số &amp; Giữ chân)</h3>
+        </div>
+        <span class="badge badge-primary">Khung đo lường 360°</span>
+      </div>
+
+      <!-- 3.1 Activation & 3.2 Engagement -->
+      <div class="grid-2" style="margin-bottom: 24px;">
+        <div class="metric-card">
+          <div class="kpi-label">3.1 Activation Metric</div>
+          <h4 style="font-size: 1.15rem; font-weight: 800;">Kích hoạt tài khoản thành công</h4>
+          <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+            Khoảnh khắc công nhân lần đầu tiên trải nghiệm giá trị cốt lõi của gia sư AI SOP.
+          </p>
+
+          <div style="background: var(--color-surface); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); font-size: 0.85rem;">
+            <div><strong>Start event:</strong> <code>worker_first_login</code> (Quét QR đăng nhập lần đầu)</div>
+            <div style="margin: 6px 0;"><strong>Activation event:</strong> <code>first_sop_quiz_passed</code> (Đạt SOP đầu tiên &ge; 80%)</div>
+            <div><strong>Time window:</strong> Trong vòng <strong>48 giờ</strong> (tương ứng 2 ca làm việc đầu tiên)</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="kpi-label">3.2 Engagement Metric (2 góc đo)</div>
+          <h4 style="font-size: 1.15rem; font-weight: 800;">Mức độ tương tác sâu &amp; liên tục</h4>
+
+          <div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--color-primary); text-transform: uppercase;">1. Frequency (Tần suất cốt lõi)</div>
+            <div class="formula-box">
+              <span>Weekly Passed SOPs per Active Worker</span>
+              <span class="fraction-eq">=</span>
+              <div class="formula-fraction">
+                <span class="fraction-top">Tổng số SOP kiểm tra đạt trong tuần</span>
+                <span class="fraction-bottom">Số công nhân hoạt động trong tuần (WAU)</span>
+              </div>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--color-text-muted); text-align: right;">Mục tiêu kỳ vọng: <strong>3 – 5 SOP/tuần/công nhân</strong></div>
+          </div>
+
+          <div style="margin-top: 10px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--color-primary); text-transform: uppercase;">2. Depth (Độ sâu chất lượng)</div>
+            <div class="formula-box">
+              <span>First-Attempt Pass Rate</span>
+              <span class="fraction-eq">=</span>
+              <div class="formula-fraction">
+                <span class="fraction-top">Số lượt đạt ngay lần thi đầu tiên</span>
+                <span class="fraction-bottom">Tổng số lượt nộp bài kiểm tra SOP</span>
+              </div>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--color-text-muted); text-align: right;">Mục tiêu kỳ vọng: <strong>&ge; 75%</strong> (Đo hiệu quả học video + hỏi AI)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3.3 Retention Definition (6 thành phần) -->
+      <h4 style="font-size: 1.15rem; font-weight: 800; margin: 24px 0 12px 0;">3. Retention Definition (Đầy đủ 6 thành phần)</h4>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 20%;">Thành phần</th>
+              <th style="width: 80%;">Định nghĩa chuẩn hóa cho SteelLearn</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="td-highlight">1. Unit</td>
+              <td><strong>User</strong> (Cá nhân công nhân kỹ thuật đang trong lộ trình đào tạo hội nhập).</td>
+            </tr>
+            <tr>
+              <td class="td-highlight">2. Cohort entry</td>
+              <td>Tuần công nhân kích hoạt tài khoản và hoàn thành SOP đầu tiên (<code>cohort_onboarding_week</code>).</td>
+            </tr>
+            <tr>
+              <td class="td-highlight">3. Return event</td>
+              <td>Hoàn thành và vượt qua ít nhất một bài kiểm tra SOP mới (<code>sop_quiz_passed</code> với <code>is_passed = True</code>).</td>
+            </tr>
+            <tr>
+              <td class="td-highlight">4. Window</td>
+              <td><strong>Weekly</strong> (Chu kỳ tuần: W1, W2, W3, W4 tương ứng với 4 tuần của chương trình onboarding chuẩn).</td>
+            </tr>
+            <tr>
+              <td class="td-highlight">5. Threshold</td>
+              <td><strong>&ge; 2 quy trình SOP</strong> được kiểm tra đạt chuẩn trong tuần đó.</td>
+            </tr>
+            <tr>
+              <td class="td-highlight">6. Segment</td>
+              <td>Phân loại theo phân xưởng: <strong>Xưởng Cán Thép</strong> và <strong>Xưởng Luyện Thép</strong> (loại trừ tài khoản Admin/Trainer và bài học demo).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 3.4 North Star Metric -->
+      <div class="metric-card nsm" style="margin: 28px 0;">
+        <span class="badge badge-primary" style="align-self: flex-start;">Chỉ số định hướng tối cao (NSM)</span>
+        <h4 style="font-size: 1.45rem; font-weight: 800; color: var(--color-primary);">
+          Số lượng quy trình SOP được công nhân kiểm tra đạt chuẩn hàng tuần
+        </h4>
+        <div style="font-size: 1.05rem; font-family: var(--font-mono); font-weight: 700; color: var(--color-text);">
+          Weekly Verified SOPs with Passing Score &ge; 80%
+        </div>
+
+        <div class="grid-3" style="margin-top: 10px;">
+          <div style="background: #ffffff; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
+            <div class="kpi-label">Unit of Value</div>
+            <div style="font-weight: 700; margin-top: 2px;">Quy trình SOP được thẩm định (Verified SOP)</div>
+          </div>
+          <div style="background: #ffffff; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
+            <div class="kpi-label">Quality Threshold</div>
+            <div style="font-weight: 700; margin-top: 2px;">Điểm số &ge; 80% &amp; có trích dẫn an toàn SOP Markdown</div>
+          </div>
+          <div style="background: #ffffff; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
+            <div class="kpi-label">Measurement Frequency</div>
+            <div style="font-weight: 700; margin-top: 2px;">Hàng tuần (Weekly Aggregated)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3.5 Leading Indicators & 3.6 Counter-metrics -->
+      <div class="grid-2">
+        <!-- Leading Indicators -->
+        <div>
+          <h4 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+            Leading Indicators (Dẫn dắt NSM)
+          </h4>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="content-card">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-weight: 700; font-size: 0.95rem;">1. Pre-quiz Tutor Inquiry Rate</div>
+                <span class="badge badge-neutral">Dự báo đỗ &gt; 80%</span>
+              </div>
+              <p style="font-size: 0.82rem; color: var(--color-text-muted); margin-top: 4px;">
+                Tỷ lệ công nhân chủ động hỏi AI Tutor làm rõ giới hạn an toàn (áp suất, nhiệt độ, E-STOP) trước khi bấm nộp bài.
+              </p>
+            </div>
+
+            <div class="content-card">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-weight: 700; font-size: 0.95rem;">2. Video Completion Rate &ge; 80%</div>
+                <span class="badge badge-neutral">Ghi nhớ trực quan</span>
+              </div>
+              <p style="font-size: 0.82rem; color: var(--color-text-muted); margin-top: 4px;">
+                Tỷ lệ xem trọn vẹn video thao tác máy thực địa. Là bước đệm tự nhiên giúp làm bài kiểm tra nhanh và chính xác hơn.
+              </p>
+            </div>
+
+            <div class="content-card">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-weight: 700; font-size: 0.95rem;">3. Next-SOP Transition Speed &lt; 24h</div>
+                <span class="badge badge-neutral">Duy trì quán tính</span>
+              </div>
+              <p style="font-size: 0.82rem; color: var(--color-text-muted); margin-top: 4px;">
+                Thời gian mở SOP tiếp theo sau khi vừa đạt SOP trước đó. Nếu &lt; 24h, khả năng duy trì retention tuần sau đạt đỉnh.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Counter-metrics -->
+        <div>
+          <h4 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            Counter-metrics (Chỉ số đối trọng an toàn)
+          </h4>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="content-card" style="border-left: 4px solid var(--color-primary);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-weight: 700; font-size: 0.95rem;">1. AI Hallucination &amp; Citation Failure</div>
+                <span class="badge badge-primary">Ngưỡng: &lt; 2%</span>
+              </div>
+              <p style="font-size: 0.82rem; color: var(--color-text-muted); margin-top: 4px;">
+                Tỷ lệ AI trả lời sai thông số kỹ thuật hoặc trích dẫn sai điều mục SOP. Ngăn ngừa nguy cơ đưa ra kiến thức sai lệch gây thảm họa tại xưởng.
+              </p>
+            </div>
+
+            <div class="content-card" style="border-left: 4px solid var(--color-primary);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-weight: 700; font-size: 0.95rem;">2. Post-Onboarding Safety Incident Rate</div>
+                <span class="badge badge-primary">Mục tiêu: Giảm &ge; 50%</span>
+              </div>
+              <p style="font-size: 0.82rem; color: var(--color-text-muted); margin-top: 4px;">
+                Tỷ lệ vi phạm an toàn thực tế tại xưởng sau khi hoàn thành đào tạo. Tránh tình trạng "học vẹt / thi mẹo" mà kỹ năng thực địa không đạt.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         PHASE 4: PRODUCT LOOP & EVENT TRACKING
+         ========================================================================== -->
+    <section id="phase4" class="section-block">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <span class="section-phase-tag">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+            Phase 4
+          </span>
+          <h3 class="section-title">Product Loop &amp; Event Tracking (Vòng lặp &amp; Đo lường)</h3>
+        </div>
+        <span class="badge badge-neutral">Cơ chế tự vận hành</span>
+      </div>
+
+      <!-- 4.1 Product Loop -->
+      <h4 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 12px;">1. Product Loop: Vòng lặp tiến trình tích lũy (Progress Loop)</h4>
+      
+      <div class="loop-flow-container">
+        <div class="loop-cycles-grid">
+          <!-- Chu kỳ 1 -->
+          <div class="cycle-column">
+            <div class="cycle-header">
+              <h4>CHU KỲ 1: SOP ĐẦU TIÊN (SOP-CAN-01)</h4>
+              <span class="badge badge-neutral">Vào ca đào tạo</span>
+            </div>
+
+            <div class="loop-step-node">
+              <div class="loop-step-label">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                Natural Trigger 1
+              </div>
+              <div class="loop-step-content">Vào ca đào tạo; Quản đốc giao mục tiêu học bài 'Máy cán thép'.</div>
+            </div>
+
+            <div class="loop-arrow-down">&darr;</div>
+
+            <div class="loop-step-node">
+              <div class="loop-step-label">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                Core Action 1
+              </div>
+              <div class="loop-step-content">Học SOP-CAN-01 &amp; Làm bài kiểm tra tình huống an toàn.</div>
+            </div>
+
+            <div class="loop-arrow-down">&darr;</div>
+
+            <div class="loop-step-node">
+              <div class="loop-step-label">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                Immediate Value 1
+              </div>
+              <div class="loop-step-content">AI chấm đạt 100/100, giải thích rõ cơ chế nút dừng E-STOP.</div>
+            </div>
+
+            <div class="loop-arrow-down">&darr;</div>
+
+            <div class="loop-step-node" style="border-color: var(--color-primary); background: #ffffff;">
+              <div class="loop-step-label">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline></svg>
+                Saved State 1
+              </div>
+              <div class="loop-step-content">Đánh dấu hoàn thành SOP-CAN-01, mở khóa SOP-CAN-02 trên cây kỹ năng.</div>
+            </div>
+          </div>
+
+          <!-- Chu kỳ 2 -->
+          <div class="cycle-column cycle-2">
+            <div class="cycle-header">
+              <h4>CHU KỲ 2: SOP TIẾP THEO (SOP-CAN-02)</h4>
+              <span class="badge badge-primary">Tự kích hoạt</span>
+            </div>
+
+            <div class="loop-step-node">
+              <div class="loop-step-label">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                Next Natural Trigger
+              </div>
+              <div class="loop-step-content">Áp lực chuẩn bị ca máy chiều; tò mò về quy trình bôi trơn kế tiếp.</div>
+            </div>
+
+            <div class="loop-arrow-down">&darr;</div>
+
+            <div class="loop-step-node">
+              <div class="loop-step-label">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                Core Action 2
+              </div>
+              <div class="loop-step-content">Học SOP-CAN-02 &amp; Hoàn thành bài kiểm tra áp suất dầu.</div>
+            </div>
+
+            <div class="loop-arrow-down">&darr;</div>
+
+            <div class="loop-step-node">
+              <div class="loop-step-label">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                Repeat Value 2
+              </div>
+              <div class="loop-step-content">Xác nhận thành thạo kiểm tra áp suất; tiến độ bài học đạt 66%.</div>
+            </div>
+
+            <div class="loop-arrow-down">&darr;</div>
+
+            <div class="loop-connector">
+              &rarr; Vòng lặp duy trì liên tục cho đến khi đạt 100% Ma trận Kỹ năng (Skill Matrix)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-card primary-accent" style="margin-bottom: 24px;">
+        <div class="kpi-label" style="color: var(--color-primary);">Metric Hypothesis (Giả thuyết tăng trưởng một câu)</div>
+        <p style="font-size: 1rem; font-weight: 700; margin-top: 6px; line-height: 1.6;">
+          &ldquo;Nếu <strong>Progress Loop</strong> này hoạt động hiệu quả, metric <strong>W2 Retention Rate (Tỷ lệ công nhân tiếp tục hoàn thành &ge; 2 SOP ở tuần thứ 2)</strong> sẽ tăng từ <strong>45% lên 70%</strong> trong <strong>30 ngày triển khai thử nghiệm</strong>, vì <strong>cảm giác tiến bộ rõ rệt qua từng mốc kỹ năng được mở khóa kết hợp phản hồi xác nhận tức thì từ AI Tutor giúp công nhân tự tin làm chủ thiết bị mà không cảm thấy việc học là gánh nặng</strong>.&rdquo;
+        </p>
+      </div>
+
+      <div class="content-card" style="margin-bottom: 28px;">
+        <h5 style="font-weight: 700; font-size: 0.95rem; margin-bottom: 6px;">Động lực quay lại tự nhiên (Reason to return không cần Push Notification):</h5>
+        <p style="font-size: 0.88rem; color: var(--color-text-muted);">
+          Công nhân có động lực quay lại vì <strong>trách nhiệm an toàn sinh mạng bản thân</strong> và <strong>áp lực thực tế của kỳ sát hạch độc lập</strong>: Họ không được phép nhận ca máy thật nếu thanh tiến độ trên ma trận kỹ năng (Skill Matrix) chưa đạt 100%.
+        </p>
+      </div>
+
+      <!-- 4.2 Tracking Plan -->
+      <h4 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 12px;">2. Kế hoạch Tracking nhanh (Tracking Plan: 7 Core Events)</h4>
+      
+      <div class="filter-bar">
+        <input type="text" id="eventSearchInput" class="search-input" placeholder="🔍 Tìm kiếm sự kiện, trigger point, hoặc metric liên kết..." onkeyup="filterEventsTable()">
+        <span class="badge badge-neutral" id="eventCountBadge">Hiển thị: 7/7 events</span>
+      </div>
+
+      <div class="table-container">
+        <table id="eventsTable">
+          <thead>
+            <tr>
+              <th style="width: 5%;">#</th>
+              <th style="width: 24%;">Tên Event (object_action)</th>
+              <th style="width: 31%;">Ý nghĩa (Hành vi / Giá trị thực tế)</th>
+              <th style="width: 25%;">Thời điểm ghi nhận (Trigger Point)</th>
+              <th style="width: 15%;">Metric sử dụng</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1</strong></td>
+              <td><code>worker_authenticated</code></td>
+              <td>Công nhân đăng nhập thành công vào ca học qua QR/mật khẩu.</td>
+              <td>Khi server trả về JWT token <code>200 OK</code> tại <code>/api/v1/auth/login</code>.</td>
+              <td><span class="badge badge-neutral">Cohort Entry, WAU</span></td>
+            </tr>
+            <tr>
+              <td><strong>2</strong></td>
+              <td><code>sop_workspace_viewed</code></td>
+              <td>Công nhân truy cập màn hình học SOP tích hợp (Video + Markdown).</td>
+              <td>Khi trang <code>/workspace/sops/{id}</code> tải xong toàn bộ nội dung.</td>
+              <td><span class="badge badge-neutral">Workspace Adoption</span></td>
+            </tr>
+            <tr>
+              <td><strong>3</strong></td>
+              <td><code>tutor_inquiry_responded</code></td>
+              <td>AI Tutor giải đáp thắc mắc thành công kèm trích dẫn điều mục hợp lệ.</td>
+              <td>Khi endpoint <code>/api/v1/tutor/chat</code> trả về phản hồi kèm mảng <code>citations</code>.</td>
+              <td><span class="badge badge-neutral">Leading Indicator 1</span></td>
+            </tr>
+            <tr>
+              <td><strong>4</strong></td>
+              <td><code>sop_quiz_generated</code></td>
+              <td>Bộ câu hỏi kiểm tra In-Context được AI khởi tạo thành công.</td>
+              <td>Khi client nhận được schema câu hỏi từ <code>/api/v1/tutor/quiz</code>.</td>
+              <td><span class="badge badge-neutral">Funnel: Quiz Start</span></td>
+            </tr>
+            <tr>
+              <td><strong>5</strong></td>
+              <td><code>sop_quiz_evaluated</code></td>
+              <td>Công nhân hoàn thành bài nộp và nhận kết quả chấm điểm từ hệ thống.</td>
+              <td>Ngay khi API <code>/api/v1/tutor/evaluate</code> trả về JSON kết quả chấm thi.</td>
+              <td><span class="badge badge-neutral">Engagement, Depth</span></td>
+            </tr>
+            <tr style="background-color: var(--color-primary-subtle); border-left: 4px solid var(--color-primary);">
+              <td><strong>6</strong></td>
+              <td>
+                <code style="color: var(--color-primary); font-weight: 800;">sop_mastery_achieved</code>
+                <div style="font-size: 0.72rem; color: var(--color-primary); font-weight: 800; margin-top: 4px;">★ CORE VALUE EVENT</div>
+              </td>
+              <td><strong>Công nhân đạt chuẩn kiến thức SOP</strong> (điểm số &ge; 80%).</td>
+              <td>Khi <code>sop_quiz_evaluated</code> có <code>is_passed = true</code> và CSDL cập nhật xong.</td>
+              <td><span class="badge badge-primary">NSM, Activation, Retention</span></td>
+            </tr>
+            <tr>
+              <td><strong>7</strong></td>
+              <td><code>lesson_completed</code></td>
+              <td>Hoàn thành toàn bộ các SOP hợp phần trong một bài học.</td>
+              <td>Khi API <code>/api/v1/lessons/{id}/complete</code> thực thi thành công.</td>
+              <td><span class="badge badge-neutral">Milestone Completion</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Acceptance Criteria -->
+      <h4 style="font-size: 1.15rem; font-weight: 800; margin: 28px 0 12px 0;">3. Tiêu chí nghiệm thu đo lường (Acceptance Criteria)</h4>
+      <div class="grid-2">
+        <div class="content-card primary-accent">
+          <div style="display: flex; align-items: center; gap: 8px; font-weight: 800; margin-bottom: 6px;">
+            <span class="badge badge-primary">AC1</span>
+            Nghiệm thu Core Value Event (sop_mastery_achieved)
+          </div>
+          <p style="font-size: 0.85rem; color: var(--color-text-muted); line-height: 1.5;">
+            Hệ thống chỉ được phép phát event <code>sop_mastery_achieved</code> khi và chỉ khi phản hồi từ endpoint <code>/api/v1/tutor/evaluate</code> thỏa mãn đồng thời: <code>score &gt;= 80.0</code> và <code>is_passed == true</code>. <strong>Tuyệt đối không bắn event</strong> khi người dùng mới bấm nút nộp bài hoặc khi kết quả thi chưa đạt ngưỡng chuẩn.
+          </p>
+        </div>
+
+        <div class="content-card primary-accent">
+          <div style="display: flex; align-items: center; gap: 8px; font-weight: 800; margin-bottom: 6px;">
+            <span class="badge badge-primary">AC2</span>
+            Tính toàn vẹn &amp; chống trùng lặp (Anti-duplication / Idempotency)
+          </div>
+          <p style="font-size: 0.85rem; color: var(--color-text-muted); line-height: 1.5;">
+            Với mỗi cặp <code>(user_id, sop_id)</code>, khi công nhân tải lại trang (<code>F5 / reload</code>) hoặc làm lại bài ôn tập, hệ thống chỉ ghi nhận <code>sop_quiz_evaluated</code> với <code>attempt_number &gt; 1</code>; <strong>tuyệt đối không phát trùng lặp</strong> sự kiện <code>sop_mastery_achieved</code> lần thứ hai vào cùng một chu kỳ tính toán tiến độ.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         LIVE DEMO SIMULATOR: WORKER CORE ACTION IN PRACTICE
+         ========================================================================== -->
+    <section id="simulator" class="demo-simulator">
+      <div class="simulator-topbar">
+        <div class="simulator-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          MÔ PHỎNG CORE ACTION: QUY TRÌNH HỌC &amp; XÁC NHẬN AN TOÀN TRÊN STEELLEARN
+        </div>
+        <span class="simulator-tag">Môi trường Tablet Ca Học: Phân xưởng Cán Thép</span>
+      </div>
+
+      <div class="simulator-body">
+        <!-- Panel bên trái: Workspace SOP Video & Markdown -->
+        <div class="simulator-left">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="sop-header-badge">SOP-CAN-03 &bull; Rev 2.4</span>
+            <span class="badge badge-neutral">Thời lượng chuẩn: 12 phút</span>
+          </div>
+
+          <h3 class="sop-doc-title">Khởi động trục cán &amp; Nạp phôi thép nóng</h3>
+
+          <!-- Video Mock Player -->
+          <div class="video-mock-player" id="videoPlayerMock" onclick="toggleVideoPlay()">
+            <div class="play-btn-circle" id="playIcon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+            </div>
+            <div id="videoStatusText" style="margin-top: 8px; font-size: 0.8rem; font-weight: 600;">Nhấn để xem video thực hành máy</div>
+          </div>
+
+          <!-- Markdown Content -->
+          <div class="sop-markdown-steps">
+            <div style="font-weight: 800; margin-bottom: 8px; text-transform: uppercase; font-size: 0.78rem; color: var(--color-primary);">
+              Các bước thao tác chuẩn &amp; Ngưỡng an toàn sống còn:
+            </div>
+            <ol>
+              <li>
+                <strong>Kiểm tra áp suất hệ thống bôi trơn:</strong> Đảm bảo đồng hồ áp suất đạt từ <strong>4.5 đến 6.0 bar</strong> trước khi nhấn nút khởi động động cơ chính.
+                <div class="citation-callout">[Điều mục 3.1 — Quy chuẩn bôi trơn thủy lực trục cán]</div>
+              </li>
+              <li>
+                <strong>Quy tắc dừng khẩn cấp:</strong> Nếu phát hiện phôi thép bị cong vênh hoặc kẹt giá cán, lập tức nhấn nút <strong>E-STOP (màu đỏ)</strong> tại bục điều khiển trong vòng 2 giây.
+                <div class="citation-callout">[Điều mục 5.2 — Xử lý sự cố kẹt phôi khẩn cấp]</div>
+              </li>
+              <li>
+                <strong>Khoảng cách an toàn nạp phôi:</strong> Giữ khoảng cách tối thiểu <strong>2.5m</strong> so với băng chuyền con lăn khi phôi đỏ đang di chuyển.
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Panel bên phải: AI Tutor Quiz & Evaluation -->
+        <div class="simulator-right">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-weight: 800; font-size: 0.95rem;">Kiểm tra An toàn In-Context</div>
+            <span class="badge badge-primary">Mục tiêu: &ge; 80%</span>
+          </div>
+
+          <!-- Câu hỏi tình huống 1 -->
+          <div class="quiz-card">
+            <div class="quiz-question-title">
+              <span style="color: var(--color-primary);">Câu 1:</span>
+              Áp suất dầu bôi trơn tối thiểu cho phép khởi động trục cán là bao nhiêu?
+            </div>
+            <div class="quiz-options">
+              <label class="quiz-option-label" id="opt1_a">
+                <input type="radio" name="q1" value="a">
+                <span>Dưới 3.0 bar</span>
+              </label>
+              <label class="quiz-option-label" id="opt1_b">
+                <input type="radio" name="q1" value="b">
+                <span>Từ 4.5 đến 6.0 bar (Chuẩn điều mục 3.1)</span>
+              </label>
+              <label class="quiz-option-label" id="opt1_c">
+                <input type="radio" name="q1" value="c">
+                <span>Trên 9.0 bar</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Câu hỏi tình huống 2 -->
+          <div class="quiz-card">
+            <div class="quiz-question-title">
+              <span style="color: var(--color-primary);">Câu 2:</span>
+              Khi phát hiện phôi thép nóng bị lệch trục hoặc có nguy cơ kẹt giá cán, thao tác bắt buộc đầu tiên là gì?
+            </div>
+            <div class="quiz-options">
+              <label class="quiz-option-label" id="opt2_a">
+                <input type="radio" name="q2" value="a">
+                <span>Dùng xà beng đẩy phôi về vị trí cũ</span>
+              </label>
+              <label class="quiz-option-label" id="opt2_b">
+                <input type="radio" name="q2" value="b">
+                <span>Nhấn nút E-STOP dừng khẩn cấp ngay lập tức</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button class="btn btn-primary" style="padding: 12px; font-size: 0.95rem;" onclick="evaluateDemoQuiz()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Nộp bài &amp; Nhận đánh giá từ AI Tutor
+          </button>
+
+          <!-- Result Feedback Box -->
+          <div class="quiz-result-feedback" id="quizFeedbackBox">
+            <div class="result-score-banner passed" id="scoreBanner">
+              <span>ĐÁNH GIÁ: ĐẠT CHUẨN (100 / 100)</span>
+              <span class="badge badge-success">is_passed = true</span>
+            </div>
+
+            <div style="font-size: 0.85rem; line-height: 1.5;" id="feedbackDetailText">
+              <strong>Phản hồi từ AI Tutor:</strong> Bạn đã nắm rất chính xác thông số áp suất dầu (4.5 - 6.0 bar) và phản xạ nhấn E-STOP chuẩn theo <em>Điều mục 3.1 &amp; 5.2</em> trong SOP. Đủ điều kiện công nhận năng lực an toàn.
+            </div>
+
+            <div class="event-log-pill" id="eventLogNotice">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+              EVENT EMITTED: sop_mastery_achieved { score: 100, is_passed: true, sop_id: "SOP-CAN-03" }
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         PHASE 5: SELF-CHECK & RATIONALE
+         ========================================================================== -->
+    <section id="phase5" class="section-block">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <span class="section-phase-tag">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Phase 5
+          </span>
+          <h3 class="section-title">Tự soi lỗi &amp; Rationale tinh chỉnh</h3>
+        </div>
+        <span class="badge badge-success">7/7 Tiêu chí hoàn hảo</span>
+      </div>
+
+      <!-- 5.1 Bảng đối chiếu tự kiểm tra -->
+      <h4 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 12px;">1. Bảng đối chiếu tự kiểm tra (Self-Check Checklist)</h4>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 50%;">Tiêu chí đối chiếu</th>
+              <th style="width: 15%; text-align: center;">Trạng thái</th>
+              <th style="width: 35%;">Đánh giá chi tiết</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1. Core action không phải thao tác giao diện / output hệ thống?</strong></td>
+              <td style="text-align: center;"><span class="badge badge-success">✅ Đạt</span></td>
+              <td>Đã chọn <em>"Hoàn thành kiểm tra hiểu biết quy trình SOP"</em>, không chọn <em>"bấm nút"</em>, <em>"đăng nhập"</em> hay <em>"hỏi AI"</em>.</td>
+            </tr>
+            <tr>
+              <td><strong>2. Activation không phải "xem hết hướng dẫn" hay "đăng nhập"?</strong></td>
+              <td style="text-align: center;"><span class="badge badge-success">✅ Đạt</span></td>
+              <td>Activation yêu cầu vượt qua bài kiểm tra SOP đầu tiên với điểm &ge; 80%.</td>
+            </tr>
+            <tr>
+              <td><strong>3. Frequency không cao hơn nhu cầu thật?</strong></td>
+              <td style="text-align: center;"><span class="badge badge-success">✅ Đạt</span></td>
+              <td>Nhịp đo là Weekly (3–5 SOP/tuần theo ca học), không áp đặt Daily gượng ép.</td>
+            </tr>
+            <tr>
+              <td><strong>4. Loop có reason to return ngoài notification?</strong></td>
+              <td style="text-align: center;"><span class="badge badge-success">✅ Đạt</span></td>
+              <td>Động lực quay lại xuất phát từ yêu cầu an toàn lao động và mục tiêu đạt chuẩn để được giao ca độc lập.</td>
+            </tr>
+            <tr>
+              <td><strong>5. Retention không dùng chung một window cho mọi cadence?</strong></td>
+              <td style="text-align: center;"><span class="badge badge-success">✅ Đạt</span></td>
+              <td>Dùng Weekly Cohort tương thích hoàn hảo với lộ trình 4 tuần onboarding nhà máy.</td>
+            </tr>
+            <tr>
+              <td><strong>6. Mọi event đều map về một metric?</strong></td>
+              <td style="text-align: center;"><span class="badge badge-success">✅ Đạt</span></td>
+              <td>Cả 7 event đều gắn trực tiếp với NSM, Activation, Engagement, hoặc Retention.</td>
+            </tr>
+            <tr>
+              <td><strong>7. Metric nào cũng có event để tính nó?</strong></td>
+              <td style="text-align: center;"><span class="badge badge-success">✅ Đạt</span></td>
+              <td>Toàn bộ các chỉ số đều có event nguồn xác thực cụ thể từ backend.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 5.2 Ghi chú Rationale -->
+      <h4 style="font-size: 1.15rem; font-weight: 800; margin: 28px 0 12px 0;">2. Ghi chú Rationale (Giải trình điều chỉnh thiết kế)</h4>
+      <div class="content-card primary-accent">
+        <h5 style="font-size: 1.05rem; font-weight: 800; color: var(--color-primary); margin-bottom: 8px;">
+          Lý do điều chỉnh Core Action từ "Hỏi đáp với AI Tutor" sang "Hoàn thành kiểm tra hiểu biết SOP":
+        </h5>
+        <p style="font-size: 0.95rem; line-height: 1.7; color: var(--color-text);">
+          Trong thiết kế ban đầu, đội ngũ có thể dễ rơi vào bẫy chọn <em>"Số lượt chat với AI Tutor"</em> làm hành vi cốt lõi. Tuy nhiên, trong bối cảnh nhà máy sản xuất thép, công nhân thao tác bằng găng tay trên tablet tại sàn xưởng; một hệ thống AI tốt là hệ thống giúp công nhân <strong>nhanh chóng thông suốt quy trình và xác nhận năng lực an toàn</strong>, chứ không phải giữ chân công nhân chat thật lâu. Việc chat nhiều thậm chí có thể phản ánh tài liệu viết khó hiểu hoặc AI trả lời lan man. Do đó, việc chuyển đổi Core Action sang <strong>"Hoàn thành kiểm tra xác nhận hiểu biết SOP đạt chuẩn"</strong> phản ánh chính xác 100% giá trị thật mà sản phẩm mang lại cho cả công nhân (an toàn, tự tin) và nhà máy (không xảy ra sự cố kỹ thuật).
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================================================
+       FOOTER
+       ========================================================================== -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <h4>SteelLearn — AI SOP Tutor Agent</h4>
+        <div class="footer-meta">Bản thiết kế chiến lược sản phẩm, hệ thống chỉ số &amp; kế hoạch đo lường thực tế nhà máy thép.</div>
+      </div>
+      <div class="footer-meta">
+        Bản quyền &copy; 2026 SteelLearn Project &bull; Track 1 Day 20 &bull; Mã học viên: 2A202602899
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       CLIENT-SIDE INTERACTIVE SCRIPTS
+       ========================================================================== -->
+  <script>
+    // 1. Filter events table
+    function filterEventsTable() {
+      const input = document.getElementById('eventSearchInput');
+      const filter = input.value.toLowerCase();
+      const table = document.getElementById('eventsTable');
+      const trs = table.getElementsByTagName('tr');
+      let visibleCount = 0;
+
+      for (let i = 1; i < trs.length; i++) {
+        const text = trs[i].textContent.toLowerCase();
+        if (text.includes(filter)) {
+          trs[i].style.display = '';
+          visibleCount++;
+        } else {
+          trs[i].style.display = 'none';
+        }
+      }
+
+      document.getElementById('eventCountBadge').textContent = `Hiển thị: ${visibleCount}/7 events`;
+    }
+
+    // 2. Video mock player state
+    let isPlaying = false;
+    function toggleVideoPlay() {
+      isPlaying = !isPlaying;
+      const statusText = document.getElementById('videoStatusText');
+      const icon = document.getElementById('playIcon');
+      if (isPlaying) {
+        statusText.textContent = "Đang phát video mô phỏng vận hành máy cán thép (0:45 / 3:12)";
+        statusText.style.color = "#00ff66";
+        icon.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
+      } else {
+        statusText.textContent = "Đã tạm dừng video";
+        statusText.style.color = "#ffffff";
+        icon.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>`;
+      }
+    }
+
+    // 3. Evaluate Demo Quiz
+    function evaluateDemoQuiz() {
+      const q1 = document.querySelector('input[name="q1"]:checked');
+      const q2 = document.querySelector('input[name="q2"]:checked');
+      const feedbackBox = document.getElementById('quizFeedbackBox');
+      const scoreBanner = document.getElementById('scoreBanner');
+      const feedbackDetail = document.getElementById('feedbackDetailText');
+      const eventLog = document.getElementById('eventLogNotice');
+
+      if (!q1 || !q2) {
+        alert("Vui lòng trả lời đầy đủ 2 câu hỏi tình huống trước khi nộp bài!");
+        return;
+      }
+
+      const q1Correct = q1.value === 'b';
+      const q2Correct = q2.value === 'b';
+
+      feedbackBox.classList.add('active');
+
+      if (q1Correct && q2Correct) {
+        scoreBanner.className = "result-score-banner passed";
+        scoreBanner.innerHTML = `<span>ĐÁNH GIÁ: ĐẠT XUẤT SẮC (100 / 100)</span><span class="badge badge-success">is_passed = true</span>`;
+        feedbackDetail.innerHTML = `<strong>Phản hồi từ AI Tutor:</strong> Bạn đã nắm rất chính xác thông số áp suất dầu (4.5 - 6.0 bar) và phản xạ dừng khẩn cấp E-STOP chuẩn theo <em>Điều mục 3.1 &amp; 5.2</em> trong SOP. Đủ điều kiện công nhận năng lực an toàn.`;
+        eventLog.style.display = "flex";
+        eventLog.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg> EVENT EMITTED: sop_mastery_achieved { score: 100, is_passed: true, sop_id: "SOP-CAN-03" }`;
+        
+        // Highlight correct options
+        document.getElementById('opt1_b').classList.add('correct');
+        document.getElementById('opt2_b').classList.add('correct');
+      } else {
+        scoreBanner.className = "result-score-banner";
+        scoreBanner.style.background = "#ffebee";
+        scoreBanner.style.color = "#c62828";
+        scoreBanner.style.border = "1px solid #ef9a9a";
+        const score = (q1Correct ? 50 : 0) + (q2Correct ? 50 : 0);
+        scoreBanner.innerHTML = `<span>ĐÁNH GIÁ: CHƯA ĐẠT (${score} / 100 - Yêu cầu &ge; 80)</span><span class="badge" style="background:#ffcdd2; color:#b71c1c;">is_passed = false</span>`;
+        feedbackDetail.innerHTML = `<strong>Phản hồi từ AI Tutor:</strong> Bạn còn nhầm lẫn thao tác an toàn. Vui lòng đọc kỹ lại <em>Điều mục 3.1 (áp suất 4.5 - 6.0 bar)</em> và luôn nhớ <em>dừng E-STOP ngay khi phôi lệch</em> trước khi thử lại!`;
+        eventLog.style.display = "flex";
+        eventLog.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg> EVENT EMITTED: sop_quiz_evaluated { score: ${score}, is_passed: false, sop_id: "SOP-CAN-03" } (Không phát sop_mastery_achieved)`;
+      }
+    }
+  </script>
+</body>
+</html>
+
